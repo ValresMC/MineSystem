@@ -1,0 +1,5 @@
+name: Mine
+version: 1.0.0
+author: Valres
+api: 5.0.0
+main: Valres\Mine\Mine
