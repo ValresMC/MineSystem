@@ -51,7 +51,7 @@ class blockEvents implements Listener
                     $player->getWorld()->setBlock($block->getPosition(), $rand[array_rand($rand)]);
                 }), $config->get("regen-time")*20);
             } else {
-                if(!(RankSystem::getInstance()->getSessionManager()->get($player)->hasPermission("mine.bypass"))){
+                if(!($player->hasPermission("mine.bypass"))){
                     $event->cancel();
                     foreach($event->getDrops() as $drop){
                         $drop->setCount(0);
@@ -70,7 +70,7 @@ class blockEvents implements Listener
     {
         $player = $event->getPlayer();
         $config = $this->plugin->config();
-        if(!(RankSystem::getInstance()->getSessionManager()->get($player)->hasPermission("mine.bypass"))){
+        if(!($player->hasPermission("mine.bypass"))){
             if($player->getWorld()->getFolderName() === $config->get("world")){
                 $event->cancel();
                 $player->sendPopup($config->get("no-place-message"));
