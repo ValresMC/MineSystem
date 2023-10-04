@@ -3,3 +3,8 @@ version: 1.0.0
 author: Valres
 api: 5.0.0
 main: Valres\Mine\Mine
+
+permissions:
+  mine.bypass:
+    default: op
+    description: Bypass block events in Mine's world
