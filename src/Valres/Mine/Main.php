@@ -5,9 +5,9 @@ namespace Valres\Mine;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\SingletonTrait;
-use Valres\Mine\Listeners\blockEvents;
+use Valres\Mine\listeners\blockEvents;
 
-class Mine extends PluginBase
+class Main extends PluginBase
 {
     use SingletonTrait;
 
