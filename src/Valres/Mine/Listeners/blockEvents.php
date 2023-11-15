@@ -1,26 +1,20 @@
 <?php
 
-namespace Valres\Mine\Listeners;
+namespace Valres\Mine\Listener;
 
-use IvanCraft623\RankSystem\RankSystem;
-use pocketmine\block\CoalOre;
-use pocketmine\block\CopperOre;
-use pocketmine\block\DiamondOre;
-use pocketmine\block\EmeraldOre;
-use pocketmine\block\GoldOre;
-use pocketmine\block\IronOre;
-use pocketmine\block\LapisOre;
-use pocketmine\block\RedstoneOre;
+use Exception;
+use pocketmine\block\BlockTypeIds;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
+use pocketmine\item\StringToItemParser;
 use pocketmine\scheduler\ClosureTask;
-use Valres\Mine\Mine;
+use Valres\Mine\Main;
 
 class blockEvents implements Listener
 {
-    public function __construct(public Mine $plugin) {}
+    public function __construct(public Main $plugin) {}
 
     /**
      * @param BlockBreakEvent $event
@@ -31,32 +25,22 @@ class blockEvents implements Listener
         $block = $event->getBlock();
         $player = $event->getPlayer();
         $config = $this->plugin->config();
-        if($player->getWorld()->getFolderName() === $config->get("world")){
-            if($block instanceof GoldOre or $block instanceof CoalOre or $block instanceof DiamondOre or $block instanceof IronOre or $block instanceof CopperOre or $block instanceof EmeraldOre or $block instanceof LapisOre or $block instanceof RedstoneOre)
+
+        if(strtolower($player->getWorld()->getFolderName()) === strtolower($config->get("world"))){
+            if (in_array($block->getTypeId(), [BlockTypeIds::COPPER_ORE, BlockTypeIds::COAL_ORE, BlockTypeIds::IRON_ORE, BlockTypeIds::GOLD_ORE, BlockTypeIds::DIAMOND_ORE, BlockTypeIds::LAPIS_LAZULI_ORE, BlockTypeIds::REDSTONE_ORE, BlockTypeIds::EMERALD_ORE]))
             {
                 $this->plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
                     $player->getWorld()->setBlock($block->getPosition(), VanillaBlocks::BEDROCK());
                 }), 2);
                 $this->plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
-                    $rand = [
-                        VanillaBlocks::COPPER_ORE(),
-                        VanillaBlocks::COAL_ORE(),
-                        VanillaBlocks::IRON_ORE(),
-                        VanillaBlocks::LAPIS_LAZULI_ORE(),
-                        VanillaBlocks::REDSTONE_ORE(),
-                        VanillaBlocks::DIAMOND_ORE(),
-                        VanillaBlocks::EMERALD_ORE(),
-                        VanillaBlocks::GOLD_ORE(),
-                    ];
-                    $player->getWorld()->setBlock($block->getPosition(), $rand[array_rand($rand)]);
+                    $newblock = $this->chooseBlock();
+                    $player->getWorld()->setBlock($block->getPosition(), StringToItemParser::getInstance()->parse($newblock)->getBlock());
                 }), $config->get("regen-time")*20);
             } else {
                 if(!($player->hasPermission("mine.bypass"))){
-                    $event->cancel();
-                    foreach($event->getDrops() as $drop){
-                        $drop->setCount(0);
-                    }
+                    $event->setDrops([]);
                     $player->sendPopup($config->get("no-break-message"));
+                    $event->cancel();
                 }
             }
         }
@@ -77,4 +61,36 @@ class blockEvents implements Listener
             }
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function pourcentage(array $blocks)
+    {
+
+        $total = array_sum($blocks);
+        if ($total !== 100) {
+            throw new Exception("Les pourcentages totaux ne sont pas égaux à 100.");
+        }
+
+        $chance = rand(1, 100);
+        $cumul = 0;
+        foreach ($blocks as $block => $pourcentage) {
+            $cumul += $pourcentage;
+            if($chance <= $cumul){
+                return $block;
+            }
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function chooseBlock(): string
+    {
+        $config = $this->plugin->config();
+        return $this->pourcentage($config->get("blocks"));
+    }
+
+
 }
