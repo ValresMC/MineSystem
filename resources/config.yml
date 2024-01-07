@@ -12,6 +12,16 @@ messages:
 
 regen-time: 60
 
+allowed-blocks:
+  - "copper_ore"
+  - "iron_ore"
+  - "gold_ore"
+  - "redstone_ore"
+  - "lapis_lazuli_ore"
+  - "coal_ore"
+  - "diamond_ore"
+  - "emerald_ore"
+
 blocks:
   coal_ore: 50
   diamond_ore: 50
