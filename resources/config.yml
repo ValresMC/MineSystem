@@ -6,13 +6,13 @@
 #Mine world :
 world: "world"
 
-no-break-message: "Tu ne peux rien casser içi !"
-no-place-message: "Tu ne peux rien poser içi !"
+messages:
+  no-break-message: "§cYou can break only ores here !"
+  no-place-message: "§cYou can't place blocks here !"
 
 regen-time: 60
 
 blocks:
   coal_ore: 50
   diamond_ore: 50
-# block_name: pourcentage
-# Le pourcentage total doit être égal à 100 !
+# block_name: pourcent
