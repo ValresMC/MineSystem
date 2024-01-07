@@ -3,12 +3,14 @@
 namespace Valres\Mine\Listeners;
 
 use Exception;
+use pocketmine\block\Block;
 use pocketmine\block\BlockTypeIds;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\item\StringToItemParser;
+use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\world\World;
 use Valres\Mine\Main;
@@ -19,6 +21,8 @@ class blockEvents implements Listener
     public static array $messages = [];
     public static int $timer;
     public static array $blocks = [];
+    public static array $allowed = [];
+    public static array $data = [];
 
 
     /**
@@ -29,25 +33,50 @@ class blockEvents implements Listener
     {
         $block = $event->getBlock();
         $player = $event->getPlayer();
-        $plugin = Main::getInstance();
 
         if(strtolower($player->getWorld()->getFolderName()) === strtolower(self::$world)){
-            if (in_array($block->getTypeId(), [BlockTypeIds::COPPER_ORE, BlockTypeIds::COAL_ORE, BlockTypeIds::IRON_ORE, BlockTypeIds::GOLD_ORE, BlockTypeIds::DIAMOND_ORE, BlockTypeIds::LAPIS_LAZULI_ORE, BlockTypeIds::REDSTONE_ORE, BlockTypeIds::EMERALD_ORE]))
-            {
-                $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
-                    $player->getWorld()->setBlock($block->getPosition(), VanillaBlocks::BEDROCK());
-                }), 2);
-                $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
-                    if($player->getWorld()->getBlock($block->getPosition())->getTypeId() === BlockTypeIds::BEDROCK){
-                        $player->getWorld()->setBlock($block->getPosition(), StringToItemParser::getInstance()->parse($this->chooseBlock(self::$blocks))->getBlock());
-                    }
-                }), self::$timer*20);
+            if(in_array($block->getTypeId(), self::$allowed)){
+                $this->scheduleBlockChange($player, $block);
             } else {
                 if(!($player->hasPermission("mine.bypass"))){
                     $event->cancel();
                     $event->setDrops([]);
                     $player->sendPopup(self::$messages["no-break-message"]);
                 }
+            }
+        }
+    }
+
+    /**
+     * @param Player $player
+     * @param Block $block
+     * @return void
+     */
+    private function scheduleBlockChange(Player $player, Block $block): void
+    {
+        $plugin = Main::getInstance();
+
+        $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
+            $player->getWorld()->setBlock($block->getPosition(), VanillaBlocks::BEDROCK());
+            self::$data[$block->getPosition()->x . ":" . $block->getPosition()->y . ":" . $block->getPosition()->z] = $block->getName();
+        }), 2);
+        $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
+            $this->replaceBedrock($player, $block);
+        }), self::$timer*20);
+    }
+
+    /**
+     * @param Player $player
+     * @param Block $block
+     * @return void
+     */
+    private function replaceBedrock(Player $player, Block $block): void
+    {
+        if($player->getWorld()->getBlock($block->getPosition())->getTypeId() === BlockTypeIds::BEDROCK){
+            $player->getWorld()->setBlock($block->getPosition(), StringToItemParser::getInstance()->parse(self::chooseBlock(self::$blocks))->getBlock());
+            $key = $block->getPosition()->x . ":" . $block->getPosition()->y . ":" . $block->getPosition()->z;
+            if(isset(self::$data[$key])){
+                unset(self::$data[$key]);
             }
         }
     }
@@ -68,7 +97,7 @@ class blockEvents implements Listener
         }
     }
 
-    public function chooseBlock(array $blocks)
+    public static function chooseBlock(array $blocks)
     {
         $rand = mt_rand(1, (int) array_sum($blocks));
 
@@ -79,4 +108,6 @@ class blockEvents implements Listener
             }
         }
     }
+
+
 }
