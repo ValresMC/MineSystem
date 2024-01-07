@@ -28,7 +28,6 @@ class Main extends PluginBase
                 blockEvents::$blocks[$block] = $pourcent;
             }
         }
-        var_dump(blockEvents::$blocks);
         blockEvents::$world = $config->get("world");
         blockEvents::$timer = $config->get("regen-time");
     }
