@@ -1,6 +1,6 @@
 <?php
 
-namespace Valres\Mine\Listener;
+namespace Valres\Mine\Listeners;
 
 use Exception;
 use pocketmine\block\BlockTypeIds;
@@ -10,11 +10,16 @@ use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\item\StringToItemParser;
 use pocketmine\scheduler\ClosureTask;
+use pocketmine\world\World;
 use Valres\Mine\Main;
 
 class blockEvents implements Listener
 {
-    public function __construct(public Main $plugin) {}
+    public static string $world;
+    public static array $messages = [];
+    public static int $timer;
+    public static array $blocks = [];
+
 
     /**
      * @param BlockBreakEvent $event
@@ -24,23 +29,24 @@ class blockEvents implements Listener
     {
         $block = $event->getBlock();
         $player = $event->getPlayer();
-        $config = $this->plugin->config();
+        $plugin = Main::getInstance();
 
-        if(strtolower($player->getWorld()->getFolderName()) === strtolower($config->get("world"))){
+        if(strtolower($player->getWorld()->getFolderName()) === strtolower(self::$world)){
             if (in_array($block->getTypeId(), [BlockTypeIds::COPPER_ORE, BlockTypeIds::COAL_ORE, BlockTypeIds::IRON_ORE, BlockTypeIds::GOLD_ORE, BlockTypeIds::DIAMOND_ORE, BlockTypeIds::LAPIS_LAZULI_ORE, BlockTypeIds::REDSTONE_ORE, BlockTypeIds::EMERALD_ORE]))
             {
-                $this->plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
+                $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
                     $player->getWorld()->setBlock($block->getPosition(), VanillaBlocks::BEDROCK());
                 }), 2);
-                $this->plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
-                    $newblock = $this->chooseBlock();
-                    $player->getWorld()->setBlock($block->getPosition(), StringToItemParser::getInstance()->parse($newblock)->getBlock());
-                }), $config->get("regen-time")*20);
+                $plugin->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $block){
+                    if($player->getWorld()->getBlock($block->getPosition())->getTypeId() === BlockTypeIds::BEDROCK){
+                        $player->getWorld()->setBlock($block->getPosition(), StringToItemParser::getInstance()->parse($this->chooseBlock(self::$blocks))->getBlock());
+                    }
+                }), self::$timer*20);
             } else {
                 if(!($player->hasPermission("mine.bypass"))){
-                    $event->setDrops([]);
-                    $player->sendPopup($config->get("no-break-message"));
                     $event->cancel();
+                    $event->setDrops([]);
+                    $player->sendPopup(self::$messages["no-break-message"]);
                 }
             }
         }
@@ -53,44 +59,24 @@ class blockEvents implements Listener
     public function onPlace(BlockPlaceEvent $event): void
     {
         $player = $event->getPlayer();
-        $config = $this->plugin->config();
+
         if(!($player->hasPermission("mine.bypass"))){
-            if($player->getWorld()->getFolderName() === $config->get("world")){
+            if(strtolower($player->getWorld()->getFolderName()) === strtolower(self::$world)){
                 $event->cancel();
-                $player->sendPopup($config->get("no-place-message"));
+                $player->sendPopup(self::$messages["no-place-message"]);
             }
         }
     }
 
-    /**
-     * @throws Exception
-     */
-    public function pourcentage(array $blocks)
+    public function chooseBlock(array $blocks)
     {
+        $rand = mt_rand(1, (int) array_sum($blocks));
 
-        $total = array_sum($blocks);
-        if ($total !== 100) {
-            throw new Exception("Les pourcentages totaux ne sont pas égaux à 100.");
-        }
-
-        $chance = rand(1, 100);
-        $cumul = 0;
-        foreach ($blocks as $block => $pourcentage) {
-            $cumul += $pourcentage;
-            if($chance <= $cumul){
+        foreach ($blocks as $block => $weight) {
+            $rand -= $weight;
+            if ($rand <= 0) {
                 return $block;
             }
         }
     }
-
-    /**
-     * @throws Exception
-     */
-    public function chooseBlock(): string
-    {
-        $config = $this->plugin->config();
-        return $this->pourcentage($config->get("blocks"));
-    }
-
-
 }
