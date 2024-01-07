@@ -14,6 +14,13 @@
 
 (FRA) : Dans le dossier `plugin_data/Mine/config.yml` , indiquez le monde, les messages d'interdictions de placer ou casser un autre bloc qu'un minerais, et le temps de réapparition du minerais en seconde.  
 
+# ToDo ?
+
+| ToDo | ❔ |
+| :----: | :----: |
+| bypass permission | ✔ |
+| optimization | ❌ |
+
 # My discord :
 
 You can join <a href="https://discord.gg/NkZu7DNKEn">here</a> !
