@@ -19,7 +19,7 @@
 | ToDo | ❔ |
 | :----: | :----: |
 | bypass permission | ✔ |
-| optimization | ❌ |
+| optimization | ✔ |
 
 # My discord :
 
