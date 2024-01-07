@@ -20,7 +20,8 @@
 | :----: | :----: |
 | bypass permission | ✔ |
 | optimization | ✔ |
-| bedrock after crash/redem | ❌ |
+| bedrock after crash/redem | ✔ |
+| configurable allowed blocks | ✔ |
 
 # My discord :
 
