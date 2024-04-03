@@ -10,18 +10,19 @@
 
 # Configuration :
 
-(ENG) : In the `plugin_data/Mine/config.yml` folder, specify the world, messages for prohibiting the placement or breaking of any block other than ore, and the respawn time of the ore in seconds.  
+(ENG) : In the `plugin_data/Mine/zone.yml` folder, specify the world, messages for prohibiting the placement or breaking of any block other than ore, and the respawn time of the ore in seconds.  
 
-(FRA) : Dans le dossier `plugin_data/Mine/config.yml` , indiquez le monde, les messages d'interdictions de placer ou casser un autre bloc qu'un minerais, et le temps de réapparition du minerais en seconde.  
+(FRA) : Dans le dossier `plugin_data/Mine/zone.yml` , indiquez le monde, les messages d'interdictions de placer ou casser un autre bloc qu'un minerais, et le temps de réapparition du minerais en seconde.  
 
 # ToDo ?
 
 | ToDo | ❔ |
 | :----: | :----: |
-| bypass permission | ✔ |
 | optimization | ✔ |
 | bedrock after crash/redem | ✔ |
 | configurable allowed blocks | ✔ |
+| unlimited zones | ✔ |
+| blocks and timer per zones | ✔ |
 
 # My discord :
 
