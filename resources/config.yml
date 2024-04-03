@@ -1,0 +1,14 @@
+zoneName:
+  world: "test"
+  zones:
+    min: [50, 50, 50]
+    max: [70, 70, 70]
+  allowed-blocks:
+    - "diamond_ore"
+    - "emerald_ore"
+    - "coal_ore"
+  new-blocks:
+    diamond_ore: 20
+    emerald_ore: 50
+    coal_ore: 30
+  timer: 30
