@@ -5,8 +5,8 @@
   title="EasterEgg hein ;)" 
   />
   
-<p>(ENG) : In a defined world, when a player breaks an ore, it allows for it to be transformed into Bedrock and then retransformed into random ores after a certain amount of time.</p>  
-<p>(FRA) : Permet, dans un monde défini et quand un joueur casse un minerais, de le transformer en Bedrock, puis le retransformer en minerais aléatoire au bout d'un certains temps.</p>  
+<p>(ENG) : Allows defining multiple mining zones with different ores and respawn times.</p>  
+<p>(FRA) : Permet de définir plusieurs zones de minage, avec des minerais et des temps de réapparition différents.</p>  
 
 # Configuration :
 
