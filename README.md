@@ -1,7 +1,7 @@
 # MineSystem
 
 <img 
-  src = "logo.png"
+  src = "icon.png"
   title="EasterEgg hein ;)" 
   />
   
