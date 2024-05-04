@@ -21,7 +21,6 @@ class Main extends PluginBase
     protected function onEnable(): void
     {
         $this->loadAll();
-        $this->getLogger()->info("By Valres est lancé !");
         $this->zoneManager->loadZones();
         $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function(): void{
             $this->cacheManager->regenerateBlocks();
