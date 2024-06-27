@@ -1,4 +1,6 @@
 # MineSystem
+
+<a href="https://poggit.pmmp.io/p/MineSystem"><img src="https://poggit.pmmp.io/shield.dl.total/MineSystem"></a>
   
 <p>(ENG) : Allows defining multiple mining zones with different ores and respawn times.</p>  
 <p>(FRA) : Permet de définir plusieurs zones de minage, avec des minerais et des temps de réapparition différents.</p>  
