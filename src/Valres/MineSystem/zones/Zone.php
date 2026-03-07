@@ -1,96 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Valres\MineSystem\zones;
 
-use pocketmine\block\Block;
-use pocketmine\math\Vector3;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\world\Position;
 use pocketmine\world\World;
 
-class Zone
-{
+final readonly class Zone {
     public function __construct(
-        protected string $name,
-        protected World $world,
-        protected Vector3 $min,
-        protected Vector3 $max,
-        protected array $allowed,
-        protected array $newblock,
-        protected int $timer
-    ) {}
+        private string $name,
+        private World $world,
+        private AxisAlignedBB $zone,
+        private array $allowed,
+        private array $newBlock,
+        private int $timer
+    ) {
+    }
 
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
+    public function getName(): string {
         return $this->name;
     }
 
-    /**
-     * @return World
-     */
-    public function getWorld(): World
-    {
+    public function getWorld(): World {
         return $this->world;
     }
 
-    /**
-     * @return Vector3
-     */
-    public function getMin(): Vector3
-    {
-        return $this->min;
+    public function getZone(): AxisAlignedBB {
+        return $this->zone;
     }
 
-    /**
-     * @return Vector3
-     */
-    public function getMax(): Vector3
-    {
-        return $this->max;
+    public function inZone(Position $position): bool {
+        return $this->zone->isVectorInside($position);
     }
 
-    /**
-     * @param Position $position
-     * @return bool
-     */
-    public function inZone(Position $position): bool
-    {
-        if($position->getWorld() === $this->world){
-            if($position->x >= $this->min->x and $position->x <= $this->max->x){
-                if($position->y >= $this->min->y and $position->y <= $this->max->y){
-                    if($position->z >= $this->min->z and $position->z <= $this->max->z){
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return int[]
-     */
-    public function getAllowedBlocks(): array
-    {
+    public function getAllowedBlocks(): array {
         return $this->allowed;
     }
 
-    /**
-     * @return array
-     */
-    public function getNewBlocks(): array
-    {
-        return $this->newblock;
+    public function getNewBlocks(): array {
+        return $this->newBlock;
     }
 
-    /**
-     * @return int
-     */
-    public function getTimer(): int
-    {
+    public function getTimer(): int {
         return $this->timer;
     }
 }

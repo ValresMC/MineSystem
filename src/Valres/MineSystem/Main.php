@@ -1,58 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Valres\MineSystem;
 
 use JsonException;
-use platz1de\EasyEdit\schematic\nbt\CompressedFileStream;
 use pocketmine\plugin\PluginBase;
-use pocketmine\scheduler\ClosureTask;
 use pocketmine\utils\Config;
 use pocketmine\utils\SingletonTrait;
 use Valres\MineSystem\listeners\BlockBreak;
-use Valres\MineSystem\trait\LoaderTrait;
+use Valres\MineSystem\utils\WeightedBlockPicker;
+use Valres\MineSystem\zones\CacheManager;
+use Valres\MineSystem\zones\MineRegenerationManager;
+use Valres\MineSystem\zones\ZoneManager;
 
-class Main extends PluginBase
-{
-    use SingletonTrait, LoaderTrait;
+final class Main extends PluginBase {
+    use SingletonTrait;
 
-    /**
-     * @return void
-     */
-    protected function onEnable(): void
-    {
-        $this->loadAll();
+    public ZoneManager $zoneManager;
+    public CacheManager $cacheManager;
+    public MineRegenerationManager $mineRegenerationManager;
+    public WeightedBlockPicker $weightedBlockPicker;
+
+    protected function onLoad(): void {
+        self::setInstance($this);
+    }
+
+    /** @throws JsonException */
+    protected function onEnable(): void {
+        $this->saveDefaultConfig();
+
+        $this->weightedBlockPicker = new WeightedBlockPicker();
+        $this->zoneManager = new ZoneManager($this);
+        $this->cacheManager = new CacheManager($this, $this->weightedBlockPicker);
+        $this->mineRegenerationManager = new MineRegenerationManager($this, $this->weightedBlockPicker);
+
         $this->zoneManager->loadZones();
-        $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function(): void{
-            $this->cacheManager->regenerateBlocks();
-        }), 10);
-
+        $this->cacheManager->regenerateBlocks();
 
         $this->getServer()->getPluginManager()->registerEvents(new BlockBreak(), $this);
     }
 
     /**
-     * @return void
-     */
-    protected function onLoad(): void
-    {
-        self::setInstance($this);
-    }
-
-    /**
-     * @return void
      * @throws JsonException
      */
-    protected function onDisable(): void
-    {
+    protected function onDisable(): void {
         $this->cacheManager->saveCache();
     }
 
-    /**
-     * @param string $name
-     * @return Config
-     */
-    public function files(string $name): Config
-    {
-        return new Config($this->getDataFolder() . $name . ".yml", Config::YAML);
+    public function files(string $name): Config {
+        return new Config($this->getDataFolder() . $name . '.yml', Config::YAML);
     }
 }

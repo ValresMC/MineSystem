@@ -1,84 +1,106 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Valres\MineSystem\zones;
 
 use JsonException;
-use pocketmine\block\BlockTypeIds;
 use pocketmine\item\StringToItemParser;
-use pocketmine\world\particle\ExplodeParticle;
 use pocketmine\world\Position;
 use Valres\MineSystem\Main;
+use Valres\MineSystem\utils\WeightedBlockPicker;
 
-class CacheManager
-{
-    public array $cache = [];
+final class CacheManager {
+    /** @var array<string, array<string, true>> */
+    private array $cache = [];
 
-    public function inCache(Zone $zone, Position $position): void
-    {
-        $key = $position->x . ":" . $position->y . ":" . $position->z;
-
-        $this->cache[$zone->getName()][] = $key;
+    public function __construct(
+        private readonly Main       $plugin,
+        private readonly WeightedBlockPicker $picker
+    ) {
     }
 
-    public function outCache(Zone $zone, Position $position): void
-    {
-        $key = $position->x . ":" . $position->y . ":" . $position->z;
+    public function isInCache(Zone $zone, Position $position): bool {
+        return isset($this->cache[$zone->getName()][$this->posToKey($position)]);
+    }
 
-        if(isset($this->cache[$zone->getName()][$key])){
-            unset($this->cache[$zone->getName()][$key]);
+    public function inCache(Zone $zone, Position $position): void {
+        $this->cache[$zone->getName()][$this->posToKey($position)] = true;
+    }
+
+    public function outCache(Zone $zone, Position $position): void {
+        unset($this->cache[$zone->getName()][$this->posToKey($position)]);
+
+        if (isset($this->cache[$zone->getName()]) && empty($this->cache[$zone->getName()])) {
+            unset($this->cache[$zone->getName()]);
         }
     }
 
     /**
-     * @return void
      * @throws JsonException
      */
-    public function saveCache(): void
-    {
-        $plugin = Main::getInstance();
-        $data = $plugin->files("data");
+    public function saveCache(): void {
+        $data = $this->plugin->files('data');
+        $data->setAll([]);
 
-        foreach($this->cache as $zone => $pos){
-            $data->set($zone, $pos);
+        foreach ($this->cache as $zoneName => $positions) {
+            $data->set($zoneName, array_keys($positions));
         }
+
         $data->save();
     }
 
     /**
-     * @return void
      * @throws JsonException
      */
-    public function regenerateBlocks(): void
-    {
-        $plugin = Main::getInstance();
-        $data = $plugin->files("data");
+    public function regenerateBlocks(): void {
+        $data = $this->plugin->files('data');
 
-        foreach($data->getAll() as $zone => $pos){
-            $zone = $plugin->zoneManager->getZone($zone);
-            if(!$zone instanceof Zone) return;
+        foreach ($data->getAll() as $zoneName => $positions) {
+            $zone = $this->plugin->zoneManager->getZone((string) $zoneName);
+            if (!$zone instanceof Zone) {
+                $this->plugin->getLogger()->warning("Zone introuvable dans data.yml: " . (string) $zoneName);
+                continue;
+            }
 
-            foreach($pos as $position){
-                $pos_ = explode(":", $position);
-                $position_ = new Position($pos_[0], $pos_[1], $pos_[2], $zone->getWorld());
+            if (!is_array($positions)) {
+                $data->remove($zone->getName());
+                continue;
+            }
 
-                $zone->getWorld()->setBlock($position_, StringToItemParser::getInstance()->parse($this->chooseBlock($zone))->getBlock());
+            foreach ($positions as $rawPosition) {
+                if (!is_string($rawPosition)) {
+                    continue;
+                }
+
+                $parts = explode(':', $rawPosition);
+                if (count($parts) !== 3) {
+                    continue;
+                }
+
+                $position = new Position((int) $parts[0], (int) $parts[1], (int) $parts[2], $zone->getWorld());
+                $blockName = $this->picker->pick($zone->getNewBlocks());
+                if ($blockName === null) {
+                    continue;
+                }
+
+                $item = StringToItemParser::getInstance()->parse($blockName);
+                if ($item === null) {
+                    $this->plugin->getLogger()->warning("Bloc invalide dans new-blocks pour la zone {$zone->getName()}: {$blockName}");
+                    continue;
+                }
+
+                $zone->getWorld()->setBlock($position, $item->getBlock());
             }
 
             $data->remove($zone->getName());
         }
+
         $data->save();
+        $this->cache = [];
     }
 
-    public function chooseBlock(Zone $zone)
-    {
-        $blocks = $zone->getNewBlocks();
-        $rand = mt_rand(1, (int) array_sum($blocks));
-
-        foreach($blocks as $block => $percent){
-            $rand -= $percent;
-            if($rand <= 0){
-                return $block;
-            }
-        }
+    private function posToKey(Position $position): string {
+        return $position->getFloorX() . ':' . $position->getFloorY() . ':' . $position->getFloorZ();
     }
 }
