@@ -1,6 +1,9 @@
 .DS_Store
 Thumbs.db
 
+.php-cs-fixer.php
+.php-cs-fixer.cache
+
 .idea/
 .vscode/
 *.code-workspace
