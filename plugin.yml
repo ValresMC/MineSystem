@@ -1,5 +1,5 @@
 name: MineSystem
 author: Valres
-version: 2.0.0
+version: 2.1.0
 api: [5.0.0]
 main: Valres\MineSystem\Main
